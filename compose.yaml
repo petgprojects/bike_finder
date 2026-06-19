@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: .
+    image: lyft-spot-finder:local
+    init: true
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+    volumes:
+      - ./config/locations.json:/app/config/locations.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true

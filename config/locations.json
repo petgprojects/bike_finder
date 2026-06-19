@@ -1,0 +1,22 @@
+{
+  "home": [
+    {
+      "station_id": "645e4365-653f-48ce-bc15-5fcc287be56f",
+      "name": "Home Primary"
+    },
+    {
+      "station_id": "66db76a1-0aca-11e7-82f6-3863bb44ef7c",
+      "name": "Home Secondary"
+    }
+  ],
+  "work": [
+    {
+      "station_id": "2170352212111402482",
+      "name": "Work Primary"
+    },
+    {
+      "station_id": "3b530cff-dd26-4cfd-b570-a85fd53354fe",
+      "name": "Work Secondary"
+    }
+  ]
+}

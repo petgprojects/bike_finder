@@ -1,0 +1,13 @@
+{
+  "name": "lyft-spot-finder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small API for checking bike and dock availability at predefined Citi Bike locations.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  }
+}
