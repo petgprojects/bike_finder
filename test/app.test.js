@@ -28,9 +28,24 @@ async function startServer(options = {}) {
       last_updated: 1234,
       data: {
         stations: [
-          { station_id: "station-3", name: "Park Ave & E 42 St" },
-          { station_id: "station-1", name: "Park Ave & E 41 St" },
-          { station_id: "station-2", name: "Broadway & W 40 St" },
+          {
+            station_id: "station-3",
+            name: "Park Ave & E 42 St",
+            lat: 40.752,
+            lon: -73.992,
+          },
+          {
+            station_id: "station-1",
+            name: "Park Ave & E 41 St",
+            lat: 40.75,
+            lon: -73.99,
+          },
+          {
+            station_id: "station-2",
+            name: "Broadway & W 40 St",
+            lat: 40.751,
+            lon: -73.991,
+          },
         ],
       },
     }),
@@ -124,4 +139,88 @@ test("returns 502 when station information cannot be loaded", async (t) => {
   const response = await fetch(`${url}/api/stations/search?query=park`);
 
   assert.equal(response.status, 502);
+});
+
+test("returns the nearest station with enough open docks", async (t) => {
+  const { server, url } = await startServer({
+    getStationStatus: async () => ({
+      last_updated: 5678,
+      data: {
+        stations: [
+          {
+            station_id: "station-1",
+            num_bikes_available: 9,
+            num_docks_available: 0,
+            is_installed: 1,
+            is_renting: 1,
+            is_returning: 1,
+          },
+          {
+            station_id: "station-2",
+            num_bikes_available: 2,
+            num_ebikes_available: 1,
+            num_docks_available: 1,
+            is_installed: 1,
+            is_renting: 1,
+            is_returning: 1,
+          },
+          {
+            station_id: "station-3",
+            num_bikes_available: 5,
+            num_ebikes_available: 3,
+            num_docks_available: 2,
+            is_installed: 1,
+            is_renting: 1,
+            is_returning: 1,
+            last_reported: 5600,
+          },
+        ],
+      },
+    }),
+  });
+  t.after(() => server.close());
+
+  const response = await fetch(
+    `${url}/api/stations/nearest?latitude=40.75&longitude=-73.99&min_docks=2`,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.query, {
+    latitude: 40.75,
+    longitude: -73.99,
+    min_docks: 2,
+  });
+  assert.equal(body.feed_last_updated, 5678);
+  assert.equal(body.station_information_last_updated, 1234);
+  assert.equal(body.station.station_id, "station-3");
+  assert.equal(body.station.docks_available, 2);
+  assert.equal(body.station.bikes_available, 5);
+  assert.equal(body.station.ebikes_available, 3);
+  assert.equal(body.station.has_dock, true);
+  assert.equal(body.station.last_reported, 5600);
+});
+
+test("rejects invalid nearest-station coordinates", async (t) => {
+  const { server, url } = await startServer();
+  t.after(() => server.close());
+
+  const response = await fetch(
+    `${url}/api/stations/nearest?latitude=91&longitude=-73.99`,
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(body.details, ["latitude must be a number from -90 to 90"]);
+});
+
+test("returns 404 when no station has enough open docks", async (t) => {
+  const { server, url } = await startServer();
+  t.after(() => server.close());
+
+  const response = await fetch(
+    `${url}/api/stations/nearest?latitude=40.75&longitude=-73.99&min_docks=10`,
+  );
+
+  assert.equal(response.status, 404);
 });

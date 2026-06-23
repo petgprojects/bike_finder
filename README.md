@@ -1,7 +1,8 @@
 # Bike Spot Finder
 
 A dependency-free Node.js API that checks the live Citi Bike GBFS feed for bike
-and dock availability at predefined groups of stations.
+and dock availability at predefined groups of stations, or finds the nearest
+station that can currently accept a bike.
 
 ## Configure locations
 
@@ -60,6 +61,23 @@ curl "http://localhost:3000/api/stations/search?query=park%20ave"
 The response contains matching `station_id` and `name` pairs, sorted by name.
 Searches require at least two characters and return up to 50 results. Station
 information is cached for five minutes.
+
+Find the nearest station with at least one open dock:
+
+```sh
+curl "http://localhost:3000/api/stations/nearest?latitude=40.75&longitude=-73.99"
+```
+
+Require a minimum number of open docks:
+
+```sh
+curl "http://localhost:3000/api/stations/nearest?latitude=40.75&longitude=-73.99&min_docks=2"
+```
+
+The nearest-station response includes the station ID, name, latitude, longitude,
+distance in meters, open docks, available bikes, available e-bikes, operational
+status, and feed timestamps. You can also use `lat` for `latitude` and `lon` or
+`lng` for `longitude`.
 
 ## Test
 

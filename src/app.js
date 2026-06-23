@@ -4,6 +4,10 @@ const {
   parseRequestedLocations,
   validateLocations,
 } = require("./availability");
+const {
+  findNearestAvailableDock,
+  parseNearestDockQuery,
+} = require("./nearest-station");
 const { searchStations } = require("./station-search");
 
 function sendJson(response, statusCode, body) {
@@ -46,6 +50,56 @@ function createApp({
         logger.error("Could not load Citi Bike station information", error);
         return sendJson(response, 502, {
           error: "Citi Bike station information is temporarily unavailable",
+        });
+      }
+    }
+
+    if (
+      request.method === "GET" &&
+      url.pathname === "/api/stations/nearest"
+    ) {
+      const { latitude, longitude, minDocks, errors } =
+        parseNearestDockQuery(url.searchParams);
+
+      if (errors.length > 0) {
+        return sendJson(response, 400, {
+          error:
+            "Supply valid latitude, longitude, and optional min_docks parameters",
+          details: errors,
+        });
+      }
+
+      try {
+        const [stationInformationFeed, stationStatusFeed] = await Promise.all([
+          getStationInformation(),
+          getStationStatus(),
+        ]);
+        const station = findNearestAvailableDock(
+          stationInformationFeed,
+          stationStatusFeed,
+          { latitude, longitude, minDocks },
+        );
+
+        if (!station) {
+          return sendJson(response, 404, {
+            error: `No stations currently have at least ${minDocks} open docks`,
+          });
+        }
+
+        return sendJson(response, 200, {
+          query: {
+            latitude,
+            longitude,
+            min_docks: minDocks,
+          },
+          feed_last_updated: stationStatusFeed.last_updated,
+          station_information_last_updated: stationInformationFeed.last_updated,
+          station,
+        });
+      } catch (error) {
+        logger.error("Could not load Citi Bike station feeds", error);
+        return sendJson(response, 502, {
+          error: "Citi Bike station feeds are temporarily unavailable",
         });
       }
     }
