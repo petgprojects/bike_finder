@@ -35,6 +35,26 @@ function parsePositiveInteger(rawValue, name, defaultValue) {
 }
 
 function parseNearestDockQuery(searchParams) {
+  const coordinateResult = parseCoordinateQuery(searchParams);
+  const minDocksResult = parsePositiveInteger(
+    searchParams.get("min_docks"),
+    "min_docks",
+    1,
+  );
+
+  const errors = [...coordinateResult.errors, minDocksResult.error].filter(
+    Boolean,
+  );
+
+  return {
+    latitude: coordinateResult.latitude,
+    longitude: coordinateResult.longitude,
+    minDocks: minDocksResult.value,
+    errors,
+  };
+}
+
+function parseCoordinateQuery(searchParams) {
   const latitudeResult = parseCoordinate(
     searchParams.get("latitude") ?? searchParams.get("lat"),
     "latitude",
@@ -49,23 +69,11 @@ function parseNearestDockQuery(searchParams) {
     -180,
     180,
   );
-  const minDocksResult = parsePositiveInteger(
-    searchParams.get("min_docks"),
-    "min_docks",
-    1,
-  );
-
-  const errors = [
-    latitudeResult.error,
-    longitudeResult.error,
-    minDocksResult.error,
-  ].filter(Boolean);
 
   return {
     latitude: latitudeResult.value,
     longitude: longitudeResult.value,
-    minDocks: minDocksResult.value,
-    errors,
+    errors: [latitudeResult.error, longitudeResult.error].filter(Boolean),
   };
 }
 
@@ -181,5 +189,6 @@ function findNearestAvailableDock(
 module.exports = {
   calculateDistanceMeters,
   findNearestAvailableDock,
+  parseCoordinateQuery,
   parseNearestDockQuery,
 };

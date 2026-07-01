@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bike Finder Favourites</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="pane key-pane" aria-labelledby="generate-title">
+        <div class="pane-header">
+          <p class="eyebrow">Access</p>
+          <h1 id="generate-title">Generate API key</h1>
+        </div>
+        <button class="primary-action" id="generateKey" type="button">
+          Generate key
+        </button>
+        <label class="field">
+          <span>Generated key</span>
+          <input id="generatedKey" type="text" readonly />
+        </label>
+      </section>
+
+      <section class="pane" aria-labelledby="favourite-title">
+        <div class="pane-header row-header">
+          <div>
+            <p class="eyebrow">Stations</p>
+            <h2 id="favourite-title">Add favourite</h2>
+          </div>
+          <button class="secondary-action" id="loadFavourites" type="button">
+            Load saved
+          </button>
+        </div>
+
+        <form id="favouriteForm" class="favourite-form">
+          <label class="field wide">
+            <span>API key</span>
+            <input id="apiKey" name="apiKey" autocomplete="off" required />
+          </label>
+          <label class="field">
+            <span>Favourite name</span>
+            <input
+              id="label"
+              name="label"
+              maxlength="80"
+              placeholder="work primary"
+              required
+            />
+          </label>
+          <label class="field wide">
+            <span>Station search</span>
+            <input
+              id="stationQuery"
+              name="stationQuery"
+              autocomplete="off"
+              placeholder="Start typing a station name"
+            />
+          </label>
+          <div class="selected-station" id="selectedStation">No station selected</div>
+          <ul class="results" id="stationResults"></ul>
+          <button class="primary-action save-action" id="saveFavourite" type="submit">
+            Save favourite
+          </button>
+        </form>
+
+        <p class="status" id="status" role="status"></p>
+        <div class="saved-list" id="savedList" aria-live="polite"></div>
+      </section>
+    </main>
+    <script src="/main.js"></script>
+  </body>
+</html>
+
