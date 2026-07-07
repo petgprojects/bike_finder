@@ -89,6 +89,21 @@ function createPostgresFavouritesStore({ connectionString, pool } = {}) {
       return result.rows.map(normalizeFavourite);
     },
 
+    async deleteFavourite(apiKey, label) {
+      await ready;
+
+      const result = await postgresPool.query(
+        [
+          "DELETE FROM favourites",
+          "WHERE api_key = $1 AND label = $2",
+          "RETURNING label",
+        ].join("\n"),
+        [apiKey, label],
+      );
+
+      return result.rowCount > 0;
+    },
+
     async close() {
       await postgresPool.end();
     },
@@ -96,4 +111,3 @@ function createPostgresFavouritesStore({ connectionString, pool } = {}) {
 }
 
 module.exports = { createPostgresFavouritesStore };
-

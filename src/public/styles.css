@@ -121,7 +121,8 @@ input:focus {
 
 .primary-action,
 .secondary-action,
-.result-button {
+.result-button,
+.danger-action {
   border: 0;
   border-radius: 6px;
   cursor: pointer;
@@ -147,6 +148,18 @@ input:focus {
   color: var(--text);
   background: var(--surface-strong);
   border: 1px solid var(--line);
+}
+
+.danger-action {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #ffffff;
+  background: var(--danger);
+}
+
+.danger-action:hover,
+.danger-action:focus-visible {
+  background: #8f3028;
 }
 
 .favourite-form {
@@ -226,11 +239,19 @@ input:focus {
 
 .saved-item {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: #fbfdfb;
+}
+
+.saved-details {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
 }
 
 .saved-item strong {
@@ -269,4 +290,3 @@ input:focus {
     grid-template-columns: 1fr;
   }
 }
-

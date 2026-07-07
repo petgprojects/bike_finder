@@ -110,6 +110,12 @@ List favourites for a key:
 curl "http://localhost:3000/api/favourites" -H "authorization: Bearer $API_KEY"
 ```
 
+Delete a favourite by label:
+
+```sh
+curl -X DELETE "http://localhost:3000/api/favourites/work%20primary" -H "authorization: Bearer $API_KEY"
+```
+
 Check availability for favourites within 1 km of a coordinate pair:
 
 ```sh

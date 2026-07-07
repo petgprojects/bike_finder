@@ -91,17 +91,25 @@ function renderSavedFavourites(favourites) {
 
   for (const favourite of favourites) {
     const item = document.createElement("div");
+    const details = document.createElement("div");
     const label = document.createElement("strong");
     const station = document.createElement("span");
+    const deleteButton = document.createElement("button");
     item.className = "saved-item";
+    details.className = "saved-details";
     label.textContent = favourite.label;
     station.textContent = favourite.station_name + " (" + favourite.station_id + ")";
-    item.append(label, station);
+    deleteButton.type = "button";
+    deleteButton.className = "danger-action";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteFavourite(favourite.label));
+    details.append(label, station);
+    item.append(details, deleteButton);
     savedList.append(item);
   }
 }
 
-async function loadFavourites() {
+async function loadFavourites({ announceSuccess = true } = {}) {
   const apiKey = getApiKey();
 
   if (!apiKey) {
@@ -121,9 +129,41 @@ async function loadFavourites() {
     }
 
     renderSavedFavourites(body.favourites);
-    setStatus("Loaded " + body.favourites.length + " favourite(s)", "success");
+    if (announceSuccess) {
+      setStatus("Loaded " + body.favourites.length + " favourite(s)", "success");
+    }
   } catch {
     setStatus("Could not load favourites", "error");
+  }
+}
+
+async function deleteFavourite(label) {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    setStatus("API key is required", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/favourites/" + encodeURIComponent(label),
+      {
+        method: "DELETE",
+        headers: { authorization: "Bearer " + apiKey },
+      },
+    );
+    const body = await response.json();
+
+    if (!response.ok) {
+      setStatus(body.error || "Could not delete favourite", "error");
+      return;
+    }
+
+    setStatus("Deleted " + body.label, "success");
+    await loadFavourites({ announceSuccess: false });
+  } catch {
+    setStatus("Could not delete favourite", "error");
   }
 }
 
@@ -183,9 +223,8 @@ favouriteForm.addEventListener("submit", async (event) => {
     }
 
     setStatus("Saved " + body.favourite.label, "success");
-    await loadFavourites();
+    await loadFavourites({ announceSuccess: false });
   } catch {
     setStatus("Could not save favourite", "error");
   }
 });
-

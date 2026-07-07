@@ -28,17 +28,23 @@ function validateFavouritePayload(body) {
     typeof body?.station_id === "string" ? body.station_id.trim() : "";
   const errors = [];
 
-  if (!label) {
-    errors.push("label is required");
-  } else if (label.length > MAX_LABEL_LENGTH) {
-    errors.push("label must be 80 characters or fewer");
-  }
+  validateFavouriteLabel(label, errors);
 
   if (!stationId) {
     errors.push("station_id is required");
   }
 
   return { label, stationId, errors };
+}
+
+function validateFavouriteLabel(label, errors = []) {
+  if (!label) {
+    errors.push("label is required");
+  } else if (label.length > MAX_LABEL_LENGTH) {
+    errors.push("label must be 80 characters or fewer");
+  }
+
+  return errors;
 }
 
 function isValidCoordinate(latitude, longitude) {
@@ -101,6 +107,6 @@ module.exports = {
   FAVOURITE_RADIUS_METERS,
   buildNearbyFavouriteLocations,
   parseBearerApiKey,
+  validateFavouriteLabel,
   validateFavouritePayload,
 };
-

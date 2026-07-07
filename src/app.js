@@ -15,10 +15,12 @@ const { searchStations } = require("./station-search");
 const {
   buildNearbyFavouriteLocations,
   parseBearerApiKey,
+  validateFavouriteLabel,
   validateFavouritePayload,
 } = require("./favourites");
 
 const DEFAULT_PUBLIC_ROOT = path.join(__dirname, "public");
+const FAVOURITES_ITEM_PATH_PREFIX = "/api/favourites/";
 const PUBLIC_FILES = new Map([
   ["/", { filename: "index.html", contentType: "text/html; charset=utf-8" }],
   [
@@ -296,6 +298,58 @@ function createApp({
     }
 
     if (
+      request.method === "DELETE" &&
+      url.pathname.startsWith(FAVOURITES_ITEM_PATH_PREFIX)
+    ) {
+      if (!favouritesStore) {
+        return rejectMissingFavouriteStore(response);
+      }
+
+      const apiKey = authenticateFavouriteRequest(request, response);
+
+      if (!apiKey) {
+        return;
+      }
+
+      let label = "";
+
+      try {
+        label = decodeURIComponent(
+          url.pathname.slice(FAVOURITES_ITEM_PATH_PREFIX.length),
+        ).trim();
+      } catch {
+        return sendJson(response, 400, {
+          error: "Favourite could not be deleted",
+          details: ["label must be URL encoded"],
+        });
+      }
+
+      const errors = validateFavouriteLabel(label);
+
+      if (errors.length > 0) {
+        return sendJson(response, 400, {
+          error: "Favourite could not be deleted",
+          details: errors,
+        });
+      }
+
+      try {
+        const deleted = await favouritesStore.deleteFavourite(apiKey, label);
+
+        if (!deleted) {
+          return sendJson(response, 404, { error: "Favourite was not found" });
+        }
+
+        return sendJson(response, 200, { deleted: true, label });
+      } catch (error) {
+        logger.error("Could not delete favourite", error);
+        return sendJson(response, 500, {
+          error: "Favourite storage is temporarily unavailable",
+        });
+      }
+    }
+
+    if (
       request.method === "GET" &&
       url.pathname === "/api/favourites/availability"
     ) {
@@ -403,4 +457,3 @@ function createApp({
 }
 
 module.exports = { createApp };
-
